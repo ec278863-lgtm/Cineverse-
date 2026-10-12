@@ -1,0 +1,188 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>CineVerse</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#0b0e17;--c:#161b2a;--a:#19e3b1;--m:#8b93a7}
+*{box-sizing:border-box;margin:0}body{background:var(--bg);color:#fff;font:14px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:84px;max-width:640px;margin:auto}
+.top{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;gap:10px;align-items:center;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px}
+.logo{font-weight:800;font-size:19px;letter-spacing:-.5px}.logo b{color:var(--a)}
+#q{flex:1;min-width:0;background:var(--c);border:0;border-radius:12px;color:#fff;padding:12px 14px;font-size:14px}
+.tabs{display:flex;gap:22px;overflow-x:auto;padding:2px 14px 10px;scrollbar-width:none}.tabs span{color:var(--m);font-size:16px;white-space:nowrap;padding-bottom:4px}.tabs .on{color:#fff;font-size:20px;font-weight:700;border-bottom:3px solid var(--a)}
+.hero{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}.slide{flex:0 0 100%;scroll-snap-align:start;height:240px;background:#1b2540 center/cover;position:relative}.slide:after{content:'';position:absolute;inset:0;background:linear-gradient(transparent 35%,var(--bg))}
+.sc{position:absolute;left:12px;right:12px;bottom:12px;z-index:1;display:flex;gap:10px;align-items:center;background:rgba(22,27,42,.88);border-radius:14px;padding:8px}.sc .po{width:44px;flex:none;border-radius:6px;padding:0;font-size:0}.sc div{flex:1;min-width:0}.sc b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sc small{color:var(--m)}
+.pl{width:40px;height:40px;border-radius:50%;background:var(--a);color:#001a13;display:grid;place-items:center;font-size:16px;flex:none}
+.sec{display:flex;justify-content:space-between;align-items:center;padding:20px 14px 10px}.sec h3{font-size:20px}.sec a{color:var(--m)}
+.cats,.row{display:flex;gap:10px;overflow-x:auto;padding:0 14px;scrollbar-width:none}
+.cat{flex:none;width:136px;height:72px;border-radius:12px;display:flex;align-items:center;padding:0 14px;font-size:16px;font-weight:600;background:linear-gradient(135deg,var(--g),#0d1322)}
+.card{flex:none;width:114px}.card p{font-size:13px;padding:6px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.po{aspect-ratio:2/3;border-radius:10px;background:linear-gradient(160deg,#1f2d4d,#0f1524) center/cover;display:flex;align-items:flex-end;padding:8px;font-size:12px;font-weight:700;color:#a9b8d8;overflow:hidden}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:0 14px}.grid .card{width:auto}
+.bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:640px;background:#0f1320f2;display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));z-index:6;border-top:1px solid #1d2335}.bar span{text-align:center;color:var(--m);font-size:11px;flex:1}.bar i{display:block;font-style:normal;font-size:22px}.bar .on{color:var(--a)}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9;display:none}.sheet.open{display:block}
+.sb{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:640px;max-height:92vh;overflow:auto;background:var(--bg);border-radius:20px 20px 0 0;padding:0 14px calc(20px + env(safe-area-inset-bottom,0px))}
+.bd{height:190px;margin:0 -14px 10px;background:#1b2540 center/cover;position:relative}.bd:after{content:'';position:absolute;inset:0;background:linear-gradient(transparent 40%,var(--bg))}
+.x{position:absolute;top:10px;right:10px;z-index:2;background:#000a;border:0;color:#fff;width:34px;height:34px;border-radius:50%;font-size:16px}
+.btn{background:var(--a);color:#001a13;border:0;border-radius:10px;padding:12px 16px;font-weight:700;font-size:14px}.btn.g{background:var(--c);color:#fff}
+.f{width:100%;background:var(--c);border:1px solid #232a3f;border-radius:10px;color:#fff;padding:12px;margin-top:8px;font-size:14px}
+.ep{display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--c);border-radius:10px;margin-top:8px}
+video{width:100%;border-radius:12px;background:#000;margin:10px 0;display:none;max-height:45vh}
+.ad{margin:16px 14px 0;display:block;border-radius:12px;overflow:hidden}.ad img{width:100%;display:block}
+.chips{display:flex;gap:8px;flex-wrap:wrap;padding-bottom:6px}.chips span{background:var(--c);padding:8px 13px;border-radius:18px;font-size:13px;color:var(--m)}.chips .on{background:var(--a);color:#001a13;font-weight:700}
+.rw{display:flex;gap:12px;padding:10px 14px;align-items:center}.rw .po{width:56px;flex:none}.rw b{display:block;margin-bottom:4px}
+.mi{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 14px;border-bottom:1px solid #151a29}.mi .s{margin:0;white-space:nowrap}.mi a{color:#fff;text-decoration:none}
+.prof{display:flex;gap:14px;align-items:center;padding:8px 14px 14px}.av{width:56px;height:56px;border-radius:50%;background:var(--a);color:#001a13;display:grid;place-items:center;font-size:24px;font-weight:800}
+.sw{position:relative;width:46px;height:26px;flex:none}.sw input{opacity:0;width:100%;height:100%;position:absolute;margin:0;z-index:1}.sw i{position:absolute;inset:0;background:#2a3147;border-radius:13px;transition:.2s}.sw i:after{content:'';position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}.sw input:checked+i{background:var(--a)}.sw input:checked+i:after{transform:translateX(20px)}
+.fl{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-bottom:12px}.sm{margin:0}
+.dots{display:flex;gap:6px;justify-content:center;padding:6px}.dots i{width:6px;height:6px;border-radius:3px;background:#2a3147;transition:.25s}.dots .on{width:18px;background:var(--a)}
+.pg{animation:sl .3s ease}@keyframes sl{from{opacity:0;transform:translateX(26px)}}.sb{animation:up .28s ease}@keyframes up{from{transform:translate(-50%,50px);opacity:0}}
+.sk{background:linear-gradient(90deg,#141a2a 25%,#1d2438 50%,#141a2a 75%);background-size:200% 100%;animation:sh 1.2s infinite;border-radius:10px}@keyframes sh{to{background-position:-200% 0}}
+.card:active,.cat:active,.rw:active{transform:scale(.97)}textarea.f{min-height:110px;font-family:inherit}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.pwr{position:relative}.pwr .f{padding-right:70px}.eye{position:absolute;right:6px;top:calc(50% + 4px);transform:translateY(-50%);background:none;border:0;color:#7d869b;font-weight:700;font-size:13px;padding:10px}
+.foot{padding:26px 14px 0;color:var(--m);font-size:13px;line-height:2}.foot a{color:var(--m);margin-right:12px}.msg{padding:20px 14px;color:var(--m);line-height:1.5}.pad{padding:0 14px}.mt{margin-top:10px}.s{color:var(--m);font-size:13px;margin-top:4px;line-height:1.5}
+#toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#252d45;padding:10px 16px;border-radius:12px;display:none;z-index:20;max-width:90%;text-align:center}
+</style><!-- ADSENSE: after you apply, paste the code Google gives you here, inside the head -->
+</head><body>
+<div class="top"><div class="logo">Cine<b>Verse</b></div><input id="q" placeholder="Search movies, series, anime" onfocus="S.sf=true;go()" oninput="S.q=this.value.trim();go()" onkeydown="if(event.key==='Enter')rec()"></div>
+<div id="tabs" class="tabs"></div><main id="app"></main><div class="foot"><a href="about.html">About</a><a href="contact.html">Contact</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms &amp; Copyright</a></div>
+<div class="bar"><span id="n-home" onclick="nav('home')"><i>⌂</i>Home</span><span id="n-dl" onclick="nav('dl')"><i>⇩</i>Downloads</span><span id="n-me" onclick="nav('me')"><i>◉</i>Me</span></div>
+<div id="sheet" class="sheet" onclick="if(event.target===this)shut()"><div class="sb" id="sb"></div></div><div id="toast"></div>
+<script>
+const sb=supabase.createClient('https://nvxwjeosbzqcehpwvvwh.supabase.co','sb_publishable_9Pg38TPKfDc9jFDlwDmGqg_yHnuuKYj');
+let ST={q:'best',auto:true,next:true,pip:true,saver:false};try{Object.assign(ST,JSON.parse(localStorage.getItem('cv-st')||'{}'))}catch(e){}
+const setS=(k,v)=>{ST[k]=v;try{localStorage.setItem('cv-st',JSON.stringify(ST))}catch(e){}};let EPS=[],DL={};
+const S={sf:false,st:'All',fl:{},loaded:false,k:'',lb:'home',titles:[],tab:'Trending',nav:'home',list:null,q:'',user:null,admin:false,wl:new Set(),ad:null};let L={};
+const AD_CLIENT='',AD_SLOT='';
+const adU=()=>AD_CLIENT?`<ins class="adsbygoogle" style="display:block;margin:16px 14px 0" data-ad-client="${AD_CLIENT}" data-ad-slot="${AD_SLOT}" data-ad-format="auto" data-full-width-responsive="true"></ins>`:'';
+const pushAds=()=>{if(AD_CLIENT)document.querySelectorAll('ins.adsbygoogle:not([data-done])').forEach(e=>{e.dataset.done=1;try{(window.adsbygoogle=window.adsbygoogle||[]).push({})}catch(x){}})};
+const QO=['360p','480p','720p','1080p','4k'],TABS=['Trending','Movie','TV','Anime','Kids'];
+const $=s=>document.querySelector(s),esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const bg=u=>u?`background-image:url('${esc(u)}')`:'',byId=id=>S.titles.find(t=>t.id===id);
+const fire=q=>{q.then(()=>{},()=>{})};let tt;function toast(m){const e=$('#toast');e.textContent=m;e.style.display='block';clearTimeout(tt);tt=setTimeout(()=>e.style.display='none',3200)}
+const meta=t=>[t.release_year,(t.genres||[])[0],t.country].filter(Boolean).join(' | ');
+const card=t=>`<div class="card" onclick="openT('${t.id}')"><div class="po" style="${bg(t.poster_url)}">${t.poster_url?'':esc(t.title)}</div><p>${esc(t.title)}</p></div>`;
+function row(name,items){if(!items.length)return'';const k='k'+Object.keys(L).length;L[k]={name,items};return `<div class="sec"><h3>${esc(name)}</h3><a onclick="more('${k}')">More ›</a></div><div class="row">${items.slice(0,12).map(card).join('')}</div>`}
+function more(k){S.list=L[k];S.nav='list';go()}
+const CATS=[['All','#1d4f7a'],['Hollywood','#2a3f8f',['us','usa','united states']],['Nollywood','#7a4a2a',['nigeria']],['Ghana','#7a6a1d',['ghana']],['Korean','#7a2a5a',['korea','south korea']],['UK','#2a6a5a',['uk','united kingdom','england']],['Anime','#5a2a8f','anime']];
+const inCat=(c,t)=>!c[2]||(c[2]==='anime'?t.type==='anime':c[2].includes((t.country||'').toLowerCase()));
+function cat(n){if(n==='All'){S.fl={};S.nav='filter';return go()}const c=CATS.find(x=>x[0]===n);S.list={name:n,items:S.titles.filter(t=>inCat(c,t))};S.lb='home';S.nav='list';go()}
+function nav(n){S.nav=n;S.sf=false;S.q='';$('#q').value='';$('#q').blur();go();scrollTo(0,0)}
+const bar=(t,b)=>`<div class="sec"><h3>${esc(t)}</h3><a onclick="nav('${b}')">Back</a></div>`;
+const mi=(i,t,f,n)=>`<div class="mi" onclick="${f}"><span>${i} ${t}</span><span class="s">${n==null?'':n+' '}›</span></div>`;
+function go(){const a=$('#app'),T=$('#tabs'),sub=['list','filter','set','hist','fb','adm'];
+ ['home','dl','me'].forEach(n=>$('#n-'+n).classList.toggle('on',!S.sf&&(S.nav===n||(sub.includes(S.nav)&&n===(['list','filter'].includes(S.nav)&&S.lb==='home'?'home':'me')))));
+ T.style.display=!S.sf&&S.nav==='home'?'flex':'none';T.innerHTML=TABS.map(t=>`<span class="${t===S.tab?'on':''}" onclick="S.tab='${t}';go()">${t}</span>`).join('');
+ const k=S.sf?'s':S.nav+S.tab;if(k!==S.k){S.k=k;a.classList.remove('pg');void a.offsetWidth;a.classList.add('pg')}
+ if(S.sf)return a.innerHTML=searchV();
+ switch(S.nav){case'home':a.innerHTML=home();pushAds();break;case'list':a.innerHTML=bar(S.list.name,S.lb)+(S.list.items.length?`<div class="grid">${S.list.items.map(card).join('')}</div>`:'<p class="msg">Nothing here yet.</p>');break;
+ case'filter':a.innerHTML=filterV();break;case'dl':a.innerHTML=dl();break;case'set':a.innerHTML=setV();break;case'fb':a.innerHTML=fbV();break;case'hist':histV();break;case'adm':a.innerHTML=bar('Admin','me')+admin();break;default:me()}}
+function dot(h){const i=Math.round(h.scrollLeft/h.clientWidth);document.querySelectorAll('#dots i').forEach((d,j)=>d.classList.toggle('on',i===j))}
+const skel=()=>`<div class="sk" style="height:240px"></div>`+[1,2].map(()=>`<div class="row" style="padding-top:20px">${[1,2,3,4].map(()=>'<div class="sk" style="flex:none;width:114px;height:170px"></div>').join('')}</div>`).join('');
+function filterV(){const F=S.fl,T=S.titles,u=a=>[...new Set(a.filter(Boolean))];
+ const sel=(id,l,o)=>`<select class="f sm" onchange="S.fl.${id}=this.value;go()"><option value="">${l}</option>${o.map(x=>`<option ${F[id]==x?'selected':''}>${esc(x)}</option>`).join('')}</select>`;
+ const h=T.filter(t=>(!F.type||t.type===F.type)&&(!F.country||t.country===F.country)&&(!F.year||String(t.release_year)===F.year)&&(!F.genre||(t.genres||[]).includes(F.genre)));
+ return bar('Filter','home')+`<div class="fl pad">${sel('type','Type',['movie','series','anime'])}${sel('country','Country',u(T.map(t=>t.country)))}${sel('year','Year',u(T.map(t=>t.release_year)).sort((a,b)=>b-a))}${sel('genre','Genre',u(T.flatMap(t=>t.genres||[])))}</div>`+(h.length?`<div class="grid">${h.map(card).join('')}</div>`:'<p class="msg">No titles match these filters.</p>')}
+function home(){L={};let T=S.titles;if(S.tab==='Movie')T=T.filter(t=>t.type==='movie');if(S.tab==='TV')T=T.filter(t=>t.type==='series');if(S.tab==='Anime')T=T.filter(t=>t.type==='anime');if(S.tab==='Kids')T=T.filter(t=>/^(G|PG|TV-Y7?|TV-G)$/i.test(t.maturity_rating||'')||(t.genres||[]).some(g=>/kid|family/i.test(g)));
+ if(!S.loaded)return skel();if(!S.titles.length)return `<p class="msg">No titles yet.${S.admin?' Open Me to add the first one.':' Check back soon.'}</p>`;
+ const f=T.filter(t=>t.featured),h=(f.length?f:T).slice(0,5);
+ let o=h.length?`<div class="hero" onscroll="dot(this)">${h.map(t=>`<div class="slide" style="${bg(t.backdrop_url||t.poster_url)}" onclick="openT('${t.id}')"><div class="sc"><div class="po" style="${bg(t.poster_url)}"></div><div><b>${esc(t.title)}</b><small>${esc(meta(t))}</small></div><span class="pl">▶</span></div></div>`).join('')}</div><div class="dots" id="dots">${h.map((_,i)=>`<i class="${i?'':'on'}"></i>`).join('')}</div>`:'';
+ o+=`<div class="sec"><h3>Categories</h3></div><div class="cats">${CATS.map(c=>`<div class="cat" style="--g:${c[1]}" onclick="cat('${c[0]}')">${c[0]}</div>`).join('')}</div>`;
+ o+=row(S.tab==='Trending'?'Trending':'Trending '+S.tab,[...T].sort((a,b)=>b.view_count-a.view_count));
+ if(S.ad)o+=`<a class="ad" href="${esc(S.ad.click_url||'#')}" target="_blank" rel="noopener sponsored"><img src="${esc(S.ad.media_url)}" alt="${esc(S.ad.name)}"></a>`;
+ o+=adU();o+=row('New releases',[...T].sort((a,b)=>b.created_at<a.created_at?-1:1));
+ const g={};T.forEach(t=>(t.genres||[]).forEach(x=>(g[x]=g[x]||[]).push(t)));
+ Object.entries(g).sort((a,b)=>b[1].length-a[1].length).slice(0,4).forEach(([n,i])=>o+=row(n,i));CATS.slice(2,6).forEach(c=>o+=row(c[0],T.filter(t=>inCat(c,t))));return o}
+const rec=()=>{if(!S.q)return;try{const R=JSON.parse(localStorage.getItem('cv-recent')||'[]').filter(x=>x!==S.q);R.unshift(S.q);localStorage.setItem('cv-recent',JSON.stringify(R.slice(0,8)))}catch(e){}};
+function sq(q){S.q=q;$('#q').value=q;rec();go()}
+function endS(){S.sf=false;S.q='';$('#q').value='';$('#q').blur();go()}
+function searchV(){const q=S.q.toLowerCase();let o=`<div class="sec"><h3>Search</h3><a onclick="endS()">Cancel</a></div>`;
+ if(!q){let R=[];try{R=JSON.parse(localStorage.getItem('cv-recent')||'[]')}catch(e){}
+  return o+(R.length?`<div class="pad s">Recent <a onclick="localStorage.removeItem('cv-recent');go()" style="float:right;color:#fff">Clear</a></div><div class="chips pad mt">${R.map(r=>`<span onclick="sq(this.dataset.q)" data-q="${esc(r)}">${esc(r)}</span>`).join('')}</div>`:'')+`<div class="sec"><h3>Everyone is searching</h3></div><div class="chips pad">${[...S.titles].sort((a,b)=>b.view_count-a.view_count).slice(0,8).map(t=>`<span onclick="sq(this.dataset.q)" data-q="${esc(t.title)}">${esc(t.title)}</span>`).join('')||'<span>No titles yet</span>'}</div>`}
+ const M={Movie:'movie',Series:'series',Anime:'anime'};let h=S.titles.filter(t=>[t.title,t.country,t.director,(t.genres||[]).join(' '),(t.cast_names||[]).join(' ')].join(' ').toLowerCase().includes(q));if(S.st!=='All')h=h.filter(t=>t.type===M[S.st]);
+ return o+`<div class="chips pad">${['All','Movie','Series','Anime'].map(c=>`<span class="${S.st===c?'on':''}" onclick="S.st='${c}';go()">${c}</span>`).join('')}</div>`+(h.length?h.map(t=>`<div class="rw" onclick="rec();openT('${t.id}')"><div class="po" style="${bg(t.poster_url)}"></div><div><b>${esc(t.title)}</b><p class="s">${esc(meta(t))}</p></div></div>`).join(''):`<div class="msg">No match for “${esc(S.q)}”.<br><button class="btn mt" onclick="reqT()">Request this title</button></div>`)}
+async function reqT(){if(!S.user){nav('me');return toast('Sign in to request titles.')}const {error}=await sb.from('cv_title_requests').insert({user_id:S.user.id,query:S.q.slice(0,200)});toast(error?error.message:'Request sent. Thank you!')}
+function dl(){const T=S.titles.filter(t=>t.allow_download);return `<div class="sec"><h3>Downloads</h3></div>`+(T.length?T.map(t=>`<div class="rw"><div class="po" style="${bg(t.poster_url)}" onclick="openT('${t.id}')"></div><div style="flex:1"><b>${esc(t.title)}</b><p class="s">${esc(meta(t))}</p></div><button class="btn" onclick="dlg('${t.id}')">⇩</button></div>`).join('')+'<p class="s pad">Files save to your phone through your browser\'s downloads.</p>':'<p class="msg">No downloadable titles yet. Titles with downloads allowed will show here.</p>')}
+async function dlg(id){const t=byId(id);if(!t)return;$('#sheet').classList.add('open');$('#sb').innerHTML='<p class="msg">Loading…</p>';
+ const {data:E}=await sb.from('cv_episodes').select('id,season,episode,name').eq('title_id',id).order('season').order('episode');const e=E||[];EPS=e;
+ const {data:A}=e.length?await sb.from('cv_video_assets').select('episode_id,quality,storage_path').in('episode_id',e.map(x=>x.id)):{data:[]};
+ DL={t,e,A:A||[]};const Q=[...new Set(DL.A.map(a=>a.quality))].sort((a,b)=>QO.indexOf(a)-QO.indexOf(b));DL.Q=Q;DL.q=Q.includes(ST.q)?ST.q:Q[Q.length-1];dlr()}
+function dlr(){const {t,e,A,Q,q}=DL;if(!Q.length){$('#sb').innerHTML='<div class="pad"><div class="sec"><h3>Download</h3><a onclick="shut()">Close</a></div><p class="msg">No video uploaded yet.</p></div>';return}
+ $('#sb').innerHTML=`<div class="pad"><div class="sec" style="padding-left:0"><h3>Download</h3><a onclick="shut()">Close</a></div><b>${esc(t.title)}</b><div class="chips mt">${Q.map(x=>`<span class="${x===q?'on':''}" onclick="DL.q='${x}';dlr()">${x}</span>`).join('')}</div>${e.filter(x=>A.some(a=>a.episode_id===x.id&&a.quality===q)).map(x=>`<label class="ep"><span>${t.type==='movie'?'Movie':'S'+x.season+' E'+x.episode}${x.name?' · '+esc(x.name):''}</span><input type="checkbox" data-e="${x.id}" checked></label>`).join('')}<button class="btn mt" style="width:100%" onclick="dgo()">⇩ Download selected</button></div>`}
+async function dgo(){const ids=[...document.querySelectorAll('[data-e]:checked')].map(x=>x.dataset.e);if(!ids.length)return toast('Select at least one.');toast('Starting download…');
+ for(const id of ids){const a=DL.A.find(x=>x.episode_id===id&&x.quality===DL.q);const u=a&&await src(a.storage_path,0,{download:true});if(u){const l=document.createElement('a');l.href=u;l.download='';document.body.appendChild(l);l.click();l.remove();await new Promise(r=>setTimeout(r,900))}}}
+function shut(){const v=$('#vp');if(v)v.pause();$('#sheet').classList.remove('open')}
+let CUR=null,A=[],last=0;
+async function openT(id){const t=byId(id);if(!t)return;CUR=t;$('#sheet').classList.add('open');$('#sb').innerHTML='<p class="msg">Loading…</p>';
+ const {data:E}=await sb.from('cv_episodes').select('*').eq('title_id',id).order('season').order('episode');const e=E||[];
+ const ser=t.type!=='movie'&&e.length>1;
+ $('#sb').innerHTML=`<div class="bd" style="${bg(t.backdrop_url||t.poster_url)}"><button class="x" onclick="shut()">✕</button></div><h2>${esc(t.title)}</h2><p class="s">${esc([meta(t),t.maturity_rating,t.runtime_minutes?t.runtime_minutes+' min':''].filter(Boolean).join(' | '))}</p>
+ <video id="vp" controls playsinline></video><div id="qs"></div>
+ <div class="mt"><button class="btn" onclick="${e.length?`play('${e[0].id}')`:`toast('No video uploaded yet.')`}">▶ Watch</button> <button class="btn g" id="wb" onclick="wl('${id}')">${S.wl.has(id)?'✓ In My List':'+ My List'}</button>${t.allow_download&&e.length?` <button class="btn g" onclick="dlg('${id}')">⇩ Download</button>`:''}</div>
+ ${t.description?`<p class="s mt">${esc(t.description)}</p>`:''}${t.director?`<p class="s">Director: ${esc(t.director)}</p>`:''}${(t.cast_names||[]).length?`<p class="s">Cast: ${esc(t.cast_names.join(', '))}</p>`:''}
+ ${ser?e.map(x=>`<div class="ep"><span onclick="play('${x.id}')">▶ S${x.season} E${x.episode}${x.name?' · '+esc(x.name):''}</span></div>`).join(''):''}`}
+async function assets(eid){const {data}=await sb.from('cv_video_assets').select('quality,storage_path').eq('episode_id',eid);return(data||[]).sort((a,b)=>QO.indexOf(b.quality)-QO.indexOf(a.quality))}
+async function src(p,t,opt){const {data,error}=await sb.storage.from('cv-media').createSignedUrl(p,3600,opt);if(error)return toast('Could not load video.');return data.signedUrl}
+async function play(eid){A=await assets(eid);if(!A.length)return toast('No video uploaded yet.');const v=$('#vp');v.style.display='block';
+ let i0=0;if(ST.saver){const j=A.findIndex(a=>QO.indexOf(a.quality)<=1);if(j>=0)i0=j}
+ $('#qs').innerHTML=A.length>1?`<select class="f" id="ql">${A.map((a,i)=>`<option value="${i}" ${i===i0?'selected':''}>${a.quality}</option>`).join('')}</select>`:'';
+ let start=0;if(S.user){const {data}=await sb.from('cv_watch_progress').select('position_seconds,completed').eq('user_id',S.user.id).eq('episode_id',eid).maybeSingle();if(data&&!data.completed&&ST.auto)start=data.position_seconds;fire(sb.rpc('cv_record_view',{p_title:CUR.id}))}
+ const set=async(i,at)=>{v.src=await src(A[i].storage_path);v.onloadedmetadata=()=>{if(at)v.currentTime=at;v.play().catch(()=>{})}};
+ if($('#ql'))$('#ql').onchange=e=>set(+e.target.value,v.currentTime);set(i0,start);
+ const save=done=>{if(S.user)fire(sb.from('cv_watch_progress').upsert({user_id:S.user.id,episode_id:eid,position_seconds:Math.floor(v.currentTime),completed:!!done}))};
+ v.ontimeupdate=()=>{if(Date.now()-last>15000){last=Date.now();save()}};v.onpause=()=>save();v.onended=()=>{save(true);const i=EPS.findIndex(x=>x.id===eid);if(ST.next&&EPS[i+1])play(EPS[i+1].id)}}
+async function down(eid){const a=await assets(eid);if(!a.length)return toast('No video uploaded yet.');const u=await src(a[0].storage_path,0,{download:true});if(u)location.href=u}
+async function wl(id){if(!S.user){shut();nav('me');return toast('Sign in to save titles.')}
+ if(S.wl.has(id)){await sb.from('cv_watchlist').delete().eq('user_id',S.user.id).eq('title_id',id);S.wl.delete(id)}else{await sb.from('cv_watchlist').insert({user_id:S.user.id,title_id:id});S.wl.add(id)}
+ $('#wb').textContent=S.wl.has(id)?'✓ In My List':'+ My List'}
+function openWL(){S.list={name:'My List',items:S.titles.filter(t=>S.wl.has(t.id))};S.lb='me';S.nav='list';go()}
+async function me(){const a=$('#app');
+ if(!S.user)return a.innerHTML=`<div class="pad"><div class="sec" style="padding-left:0"><h3>Sign in</h3></div><input class="f" id="em" type="email" placeholder="Email" autocomplete="email"><div class="pwr"><input class="f" id="pw" type="password" placeholder="Password (6+ characters)" autocomplete="current-password"><button type="button" class="eye" onclick="tp(this)">Show</button></div><button class="btn mt" style="width:100%" onclick="auth('in')">Sign in</button><button class="btn g mt" style="width:100%" onclick="auth('up')">Create account</button><p class="s">Sign in to keep a watchlist and continue watching where you stopped.</p></div><div class="mt">${mi('⚙','Settings',"nav('set')")}</div>`;
+ const nm=(S.user.email||'').split('@')[0];a.innerHTML=`<div class="prof"><div class="av">${esc(nm.charAt(0).toUpperCase())}</div><div><b>${esc(nm)}</b><p class="s">ID: ${esc(S.user.id.slice(0,8))}</p></div></div>`+mi('☰','My List',"openWL()",S.wl.size)+mi('⏱','Watch History',"nav('hist')")+mi('✉','Feedback',"nav('fb')")+mi('⚙','Settings',"nav('set')")+(S.admin?mi('🎬','Admin: add titles and videos',"nav('adm')"):'')}
+async function histV(){const a=$('#app');a.innerHTML=bar('Watch History','me')+'<p class="msg">Loading…</p>';const {data:H}=await sb.from('cv_my_history').select('*').limit(50);
+ a.innerHTML=bar('Watch History','me')+(H&&H.length?H.map(h=>`<div class="rw" onclick="openT('${h.title_id}')"><div class="po" style="${bg(h.poster_url)}"></div><div><b>${esc(h.title)}</b><p class="s">${h.type==='movie'?'':'S'+h.season+' E'+h.episode+' · '}${h.completed?'Watched':'Stopped at '+Math.floor(h.position_seconds/60)+':'+String(h.position_seconds%60).padStart(2,'0')}</p></div></div>`).join(''):'<p class="msg">Nothing watched yet.</p>')}
+function setV(){const tg=(k,l,d)=>`<div class="mi"><span>${l}<p class="s">${d}</p></span><label class="sw"><input type="checkbox" ${ST[k]?'checked':''} onchange="setS('${k}',this.checked)"><i></i></label></div>`;
+ return bar('Settings',S.user?'me':'me')+`<div class="mi"><span>Download quality<p class="s">Default for downloads</p></span><select class="f sm" style="width:110px" onchange="setS('q',this.value)">${[['best','Highest'],['720p','720p'],['480p','480p'],['360p','360p']].map(o=>`<option value="${o[0]}" ${ST.q===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div>`+
+ tg('saver','Data saver','Start playback at 480p or lower')+tg('auto','Resume where you stopped','Continue from your last position')+tg('next','Play next episode','Automatically start the next episode')+tg('pip','Mini player','Keep playing in a small window when you leave the page (where your browser supports it)')+
+ mi('↻','Check for update',"location.reload()")+`<div class="mi"><a href="about.html">About us</a><span class="s">›</span></div><div class="mi"><a href="privacy.html">Privacy Policy</a><span class="s">›</span></div><div class="mi"><a href="terms.html">User Agreement</a><span class="s">›</span></div>`+
+ mi('✕','Clear search history',"localStorage.removeItem('cv-recent');toast('Search history cleared.')")+(S.user?mi('🗑','Clear watch history',"clearH()")+mi('⎋','Log out',"out();nav('home')"):'')}
+async function clearH(){if(!confirm('Clear your watch history?'))return;await sb.from('cv_watch_progress').delete().eq('user_id',S.user.id);toast('Watch history cleared.')}
+const fbV=()=>bar('Feedback','me')+`<div class="pad"><textarea class="f" id="fbT" maxlength="2000" placeholder="Tell us what to fix or add"></textarea><button class="btn mt" onclick="fbSend()">Send feedback</button></div>`;
+async function fbSend(){const m=gv('fbT');if(!m)return toast('Write a message first.');const {error}=await sb.from('cv_feedback').insert({user_id:S.user.id,message:m});toast(error?error.message:'Thank you! Feedback sent.');if(!error)nav('me')}
+function admin(){return `<div class="pad"><div class="sec" style="padding-left:0"><h3>Add title</h3></div>
+ <input class="f" id="aT" placeholder="Title"><select class="f" id="aY"><option value="movie">Movie</option><option value="series">Series</option><option value="anime">Anime</option></select>
+ <input class="f" id="aC" placeholder="Country (e.g. Ghana, Nigeria, Korea, US, UK)"><input class="f" id="aG" placeholder="Genres, comma separated"><input class="f" id="aR" type="number" placeholder="Release year">
+ <input class="f" id="aM" placeholder="Age rating (e.g. PG-13)"><input class="f" id="aL" type="number" placeholder="Runtime in minutes"><input class="f" id="aD" placeholder="Description"><input class="f" id="aDr" placeholder="Director"><input class="f" id="aCa" placeholder="Cast, comma separated">
+ <p class="s">Poster</p><input class="f" id="aP" type="file" accept="image/*"><p class="s">Backdrop (wide)</p><input class="f" id="aB" type="file" accept="image/*">
+ <input class="f" id="aLn" placeholder="License note (who gave you the rights)"><p class="s"><label><input type="checkbox" id="aF"> Featured on home</label> &nbsp; <label><input type="checkbox" id="aDl"> Allow downloads</label></p>
+ <p class="s"><label><input type="checkbox" id="aRt"> I confirm CineVerse has the rights to distribute this title.</label></p><button class="btn mt" onclick="addT()">Publish title</button>
+ <div class="sec" style="padding-left:0"><h3>Add video</h3></div><select class="f" id="eT">${S.titles.map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join('')}</select>
+ <input class="f" id="eS" type="number" value="1" placeholder="Season"><input class="f" id="eN" type="number" value="1" placeholder="Episode"><input class="f" id="eNm" placeholder="Episode name (optional)">
+ <select class="f" id="eQ"><option>1080p</option><option>720p</option><option>480p</option><option>360p</option><option>4k</option></select><input class="f" id="eF" type="file" accept="video/*">
+ <p class="s">Free Supabase plans accept files up to 50MB. Movies use Season 1, Episode 1.</p><button class="btn mt" onclick="addE()">Upload video</button></div>`}
+const gv=i=>$('#'+i).value.trim(),csv=i=>gv(i).split(',').map(x=>x.trim()).filter(Boolean);
+async function upImg(f){if(!f)return null;const p=Date.now()+'-'+f.name.replace(/[^\w.-]/g,'_');const r=await sb.storage.from('cv-posters').upload(p,f);if(r.error)throw r.error;return sb.storage.from('cv-posters').getPublicUrl(p).data.publicUrl}
+async function addT(){if(!gv('aT'))return toast('Enter a title.');if(!$('#aRt').checked)return toast('Confirm you have the distribution rights first.');toast('Saving…');
+ try{const row={title:gv('aT'),type:gv('aY'),country:gv('aC')||null,genres:csv('aG'),release_year:+gv('aR')||null,maturity_rating:gv('aM')||null,runtime_minutes:+gv('aL')||null,description:gv('aD')||null,director:gv('aDr')||null,cast_names:csv('aCa'),
+ poster_url:await upImg($('#aP').files[0]),backdrop_url:await upImg($('#aB').files[0]),license_note:gv('aLn')||null,featured:$('#aF').checked,allow_download:$('#aDl').checked,rights_confirmed:true,published:true};
+ const {error}=await sb.from('cv_titles').insert(row);if(error)throw error;toast('Title published ✅');await load();me()}catch(e){toast('Could not save: '+(e.message||e))}}
+async function addE(){const f=$('#eF').files[0],tid=$('#eT').value;if(!tid||!f)return toast('Choose a title and a video file.');const s=+gv('eS')||1,n=+gv('eN')||1,q=$('#eQ').value;toast('Uploading… keep this page open.');
+ let {data:ep}=await sb.from('cv_episodes').select('id').eq('title_id',tid).eq('season',s).eq('episode',n).maybeSingle();
+ if(!ep){const r=await sb.from('cv_episodes').insert({title_id:tid,season:s,episode:n,name:gv('eNm')||null,published:true}).select('id').single();if(r.error)return toast(r.error.message);ep=r.data}
+ const p=ep.id+'/'+q+'-'+Date.now()+'-'+f.name.replace(/[^\w.-]/g,'_'),u=await sb.storage.from('cv-media').upload(p,f,{contentType:f.type});if(u.error)return toast('Upload failed: '+u.error.message);
+ const r=await sb.from('cv_video_assets').upsert({episode_id:ep.id,quality:q,storage_path:p,size_bytes:f.size},{onConflict:'episode_id,quality'});toast(r.error?r.error.message:'Video uploaded ✅')}
+function tp(b){const p=$('#pw'),h=p.type==='password';p.type=h?'text':'password';b.textContent=h?'Hide':'Show'}
+async function auth(m){const email=gv('em'),password=$('#pw').value;if(!email||password.length<6)return toast('Enter your email and a password of 6+ characters.');
+ const r=m==='in'?await sb.auth.signInWithPassword({email,password}):await sb.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});
+ if(r.error){const x=r.error.message;return toast(/invalid login/i.test(x)?'Wrong email or password. If you already use this email on another of our sites, use that password.':/not confirmed/i.test(x)?'Please confirm your email first, then sign in.':x)}
+ if(m==='up'&&r.data.user&&r.data.user.identities&&!r.data.user.identities.length)return toast('This email already has an account. Tap Sign in and use its password.');
+ if(m==='up'&&!r.data.session)return toast('Account created. Check your email to confirm, then sign in.');toast('Welcome to CineVerse!')}
+async function out(){await sb.auth.signOut();toast('Signed out.')}
+async function who(){const {data:{session}}=await sb.auth.getSession();S.user=session?session.user:null;if(S.ready&&S.uid===(S.user&&S.user.id))return;S.admin=false;S.wl=new Set();
+ if(S.user){const [a,w]=await Promise.all([sb.rpc('cv_is_admin'),sb.from('cv_watchlist').select('title_id').eq('user_id',S.user.id)]);S.admin=a.data===true;(w.data||[]).forEach(x=>S.wl.add(x.title_id));
+ fire(sb.from('cv_profiles').upsert({user_id:S.user.id,display_name:(S.user.email||'').split('@')[0]},{onConflict:'user_id',ignoreDuplicates:true}))}
+ if(S.uid!==(S.user&&S.user.id)||!S.ready){S.uid=S.user&&S.user.id;S.ready=1;go()}}
+async function load(){const {data}=await sb.from('cv_titles').select('*').eq('published',true).order('created_at',{ascending:false});S.titles=data||[];S.loaded=true;go()}
+document.addEventListener('visibilitychange',()=>{const v=$('#vp');if(document.hidden&&ST.pip&&v&&!v.paused&&document.pictureInPictureEnabled)v.requestPictureInPicture().catch(()=>{})});
+sb.auth.onAuthStateChange(()=>{who()});load();who();
+sb.from('cv_ads').select('*').eq('slot','home_banner').eq('kind','banner').limit(1).then(r=>{if(r.data&&r.data[0]&&/^https?:/.test(r.data[0].media_url)){S.ad=r.data[0];go()}});
+setInterval(()=>{const h=$('.hero');if(h&&h.children.length>1){const w=h.clientWidth;h.scrollTo({left:h.scrollLeft+w>=h.scrollWidth-5?0:h.scrollLeft+w,behavior:'smooth'})}},4500);
+</script></body></html>
