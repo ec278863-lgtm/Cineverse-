@@ -81,6 +81,11 @@ html{background:radial-gradient(1000px 440px at 50% -150px,#16294a 0%,#0b0e17 70
 .bar span{padding:6px 0 5px;border-radius:20px;transition:background .25s,color .25s}.bar i{display:grid;place-items:center;height:26px;transition:transform .25s}
 .bar svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .bar .on{color:var(--a);background:rgba(25,227,177,.13)}.bar .on i{transform:translateY(-2px)}.bar .on svg{filter:drop-shadow(0 0 6px rgba(25,227,177,.75))}
+
+/* ---- grid fix: long titles must not stretch the columns ---- */
+.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.grid .card{min-width:0;width:auto}.card p,.rw b{overflow:hidden;text-overflow:ellipsis}
+.watch,.wi{overflow-x:hidden}.wi{min-width:0}
+@media(min-width:760px){.grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
 </style><!-- ADSENSE: after you apply, paste the code Google gives you here, inside the head -->
 </head><body>
 <div class="top"><div class="logo">Cine<b>Verse</b></div><input id="q" placeholder="Search movies, series, anime" onfocus="S.sf=true;go()" oninput="S.q=this.value.trim();go()" onkeydown="if(event.key==='Enter')rec()"></div>
@@ -365,10 +370,14 @@ async function forgot(){const e=gv('em');if(!e)return toast('Type your email in 
  toast(error?'We could not send a reset email. Please ask the site owner to reset your password.':'If that email has an account, a reset link is on its way. If nothing arrives in a few minutes, ask the site owner to reset your password.')}
 function tp(b){const p=$('#pw'),h=p.type==='password';p.type=h?'text':'password';b.textContent=h?'Hide':'Show'}
 async function auth(m){const email=gv('em'),password=$('#pw').value;if(!email||password.length<6)return toast('Enter your email and a password of 6+ characters.');
- S.welcome=1;const r=m==='in'?await sb.auth.signInWithPassword({email,password}):await sb.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname,data:{name:(gv('nm')||email.split('@')[0]).slice(0,50)}}});
- if(r.error){S.welcome=0;const x=r.error.message;return toast(/invalid login/i.test(x)?'Wrong email or password. Check the spelling of your email, or tap Forgot password.':/not confirmed/i.test(x)?'Your account is not confirmed yet. Ask the site owner to confirm it. It takes them one tap.':/rate limit|not authorized|sending/i.test(x)?'We could not send the confirmation email. Ask the site owner to confirm your account.':x)}
- if(m==='up'&&r.data.user&&r.data.user.identities&&!r.data.user.identities.length)return S.welcome=0,toast('This email already has an account. Tap Sign in and use its password.');
- if(m==='up'&&!r.data.session)return S.welcome=0,toast('Account created. Ask the site owner to confirm it, then sign in. (Email confirmations do not reach everyone.)');toast('Welcome to CineVerse!')}
+ S.welcome=1;const fail=t=>(S.welcome=0,toast(t));
+ try{if(m==='up'){const {data,error}=await sb.functions.invoke('cv-auth',{body:{action:'signup',email,password,name:(gv('nm')||email.split('@')[0]).slice(0,50)}});
+   if(!(data&&data.ok)&&!(data&&data.error==='exists'))return fail((data&&data.error)||await errMsg(error)||'Could not create the account. Please try again.')}
+  let r=await sb.auth.signInWithPassword({email,password});
+  if(r.error&&/not confirmed/i.test(r.error.message)){await sb.functions.invoke('cv-auth',{body:{action:'activate',email}});r=await sb.auth.signInWithPassword({email,password})}
+  if(r.error){const x=r.error.message;return fail(/invalid login/i.test(x)?(m==='up'?'This email already has an account and that password does not match it. Tap Forgot password, or ask the site owner to reset it.':'Wrong email or password. Check the spelling of your email, or tap Forgot password.'):/not confirmed/i.test(x)?'We could not activate this account. Please try again in a minute.':x)}
+  toast('Signing you in…')}
+ catch(e){fail('Could not reach the server. Check your internet and try again.')}}
 async function out(){await sb.auth.signOut();toast('Signed out.')}
 async function who(){const {data:{session}}=await sb.auth.getSession();S.user=session?session.user:null;if(S.ready&&S.uid===(S.user&&S.user.id))return;S.admin=false;S.wl=new Set();
  if(S.user){const [a,w]=await Promise.all([sb.rpc('cv_is_admin'),sb.from('cv_watchlist').select('title_id').eq('user_id',S.user.id)]);S.admin=a.data===true;(w.data||[]).forEach(x=>S.wl.add(x.title_id));
