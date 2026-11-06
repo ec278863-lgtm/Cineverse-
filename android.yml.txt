@@ -1,0 +1,58 @@
+name: Build APK
+on:
+  push:
+    branches: [android-app]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: npm install
+      - run: mkdir www && cp index.html sw.js www/
+      - run: npx cap add android
+      - run: npx cap sync android
+      - run: sed -i 's#</manifest>#    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n</manifest>#' android/app/src/main/AndroidManifest.xml
+      - run: |
+          python3 - <<'PY'
+          import re,base64,zlib
+          h=open('index.html',encoding='utf-8').read()
+          b=re.search(r'id="cv-native-patch">([^<]*)<',h).group(1)
+          exec(zlib.decompress(base64.b64decode(b)).decode())
+          PY
+
+      # ADD ADMOB DEPENDENCY HERE
+      - name: Add Google Mobile Ads dependency
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          file = Path("android/app/build.gradle")
+          content = file.read_text()
+
+          dependency = "implementation 'com.google.android.gms:play-services-ads:25.5.0'"
+
+          if dependency not in content:
+              content = content.replace(
+                  "dependencies {",
+                  "dependencies {\n    " + dependency,
+                  1
+              )
+              file.write_text(content)
+
+          print("Google Mobile Ads dependency added.")
+          PY
+
+      # EXISTING BUILD STEP
+      - run: cd android && chmod +x gradlew && ./gradlew assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CineVerse-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
