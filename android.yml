@@ -1,0 +1,60 @@
+name: Build APK
+on:
+  push:
+    branches: [android-app]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check files
+        run: |
+          echo "Files in the repo:"
+          ls -la
+          if [ ! -f index.html ]; then
+            f=$(ls index.html* 2>/dev/null | head -n 1)
+            if [ -n "$f" ]; then
+              echo "NOTICE: index.html was not found, using $f instead. Rename it to index.html when you can."
+              cp "$f" index.html
+            else
+              echo "ERROR: there is no index.html in the android-app branch. Upload it to the main folder."
+              exit 1
+            fi
+          fi
+          if [ ! -f package.json ]; then echo "ERROR: package.json is missing"; exit 1; fi
+          if [ ! -f capacitor.config.json ] && [ ! -f capacitor.config.ts ]; then echo "ERROR: capacitor.config is missing"; exit 1; fi
+          echo "index.html size:"; wc -c index.html
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: npm install
+      - name: Prepare web files
+        run: |
+          mkdir -p www
+          cp index.html www/
+          if [ -f sw.js ]; then cp sw.js www/; else echo "// no service worker" > www/sw.js; fi
+          ls -la www
+      - run: npx cap add android
+      - run: npx cap sync android
+      - run: sed -i 's#</manifest>#    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n</manifest>#' android/app/src/main/AndroidManifest.xml
+      - name: Add CineVerse native features
+        run: |
+          python3 - <<'PY'
+          import re,base64,zlib,sys
+          h=open('index.html',encoding='utf-8').read()
+          m=re.search(r'id="cv-native-patch">([^<]*)<',h)
+          if not m:
+              print('WARNING: this index.html has no native patch. Building without the themed icons, ads and notifications.')
+              sys.exit(0)
+          exec(zlib.decompress(base64.b64decode(m.group(1))).decode())
+          PY
+      - run: cd android && chmod +x gradlew && ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CineVerse-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
