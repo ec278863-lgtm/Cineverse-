@@ -1,4 +1,4 @@
-      - name: Add AdMob dependency
+name: Build APK      - name: Add AdMob dependency
         run: |
           grep -q "play-services-ads" android/app/build.gradle || \
           sed -i "0,/^dependencies {/s//dependencies {\n    implementation 'com.google.android.gms:play-services-ads:22.6.0'/" android/app/build.gradlename: Build APK
