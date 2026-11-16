@@ -1,7 +1,4 @@
-name: Build APK      - name: Add AdMob dependency
-        run: |
-          grep -q "play-services-ads" android/app/build.gradle || \
-          sed -i "0,/^dependencies {/s//dependencies {\n    implementation 'com.google.android.gms:play-services-ads:22.6.0'/" android/app/build.gradlename: Build APK
+name: Build APK
 on:
   push:
     branches: [android-app]
@@ -61,4 +58,3 @@ jobs:
         with:
           name: CineVerse-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
-
