@@ -20,9 +20,7 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
+    
       - name: Install Capacitor + plugins
         run: |
           [ -f package.json ] || npm init -y
