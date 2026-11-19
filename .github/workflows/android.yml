@@ -53,9 +53,9 @@ jobs:
 
       - name: Make app icons from your logo
         run: |
-          LOGO=$(ls logo.png 237242.png 2>/dev/null | head -1)
+          LOGO=$(ls logo.png *.png *.PNG *.jpg *.jpeg *.webp 2>/dev/null | head -1)
           if [ -z "$LOGO" ]; then
-            echo "ERROR: logo not found. Upload your logo to the repo root and name it logo.png"
+            echo "ERROR: no logo image found. Upload your logo picture (png or jpg) to the main folder of the repo"
             ls
             exit 1
           fi
