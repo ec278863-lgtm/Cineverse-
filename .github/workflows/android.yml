@@ -5,6 +5,10 @@ on:
   push:
     branches: [main, android-app]
 
+# PUT YOUR REAL ADMOB APP ID ON THE NEXT LINE (it looks like ca-app-pub-4031231954162326~1234567890)
+env:
+  ADMOB_APP_ID: ca-app-pub-3940256099942544~3347511713
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,6 +23,10 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
       - name: Install Capacitor + plugins
         run: |
@@ -43,11 +51,249 @@ jobs:
           [ -d android ] || npx cap add android
           npx cap sync android
 
+      - name: Make app icons from your logo
+        run: |
+          LOGO=$(ls logo.png 237242.png 2>/dev/null | head -1)
+          if [ -z "$LOGO" ]; then
+            echo "ERROR: logo not found. Upload your logo to the repo root and name it logo.png"
+            ls
+            exit 1
+          fi
+          python -m pip install pillow numpy
+          cat > make_icons.py <<'PY'
+          import os, sys, colorsys
+          import numpy as np
+          from PIL import Image, ImageDraw
+
+          THEMES = [('classic','#050914','#19e3b1'),('live','#070b16','#19e3b1'),('gold','#120d05','#f0b94a'),('silver','#0c0e12','#d5dbe5'),('diamond','#060d22','#2f7bff'),('puregold','#0a0a0a','#FFD700'),('neon','#12041f','#ff3df2'),('ops','#0d0a08','#ff7a1a'),('royale','#12062a','#ffd23f'),('christmas','#07140d','#e8404c'),('valentine','#1b0610','#ff4d7d'),('easter','#f2f9e8','#4fa64a'),('halloween','#0f0805','#ff7a1a'),('newyear','#06150f','#e9c25a'),('space','#070a22','#7c6bff'),('pink','#ffeef6','#ff5fa2'),('3d','#050608','#e3e9f5'),('beach','#fff3d6','#0aa6c2'),('anime','#07051a','#b44bff'),('ghana','#0b0905','#FCD116'),('kente','#160607','#FCD116'),('blackstar','#06140c','#FCD116')]
+          LIGHT = {'easter', 'pink', 'beach'}
+
+          def hexrgb(h):
+              h = h.lstrip('#'); return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+
+          def extract_c(path):
+              im = Image.open(path).convert('RGB')
+              W, H = im.size
+              # inner dark tile only (no grey frame, no text): central ellipse around the C
+              cx, cy, rx, ry = 0.494 * W, 0.418 * H, 0.285 * W, 0.255 * H
+              yy, xx = np.mgrid[0:H, 0:W]
+              rr = np.sqrt(((xx - cx) / rx) ** 2 + ((yy - cy) / ry) ** 2)
+              inside = np.clip((1.0 - rr) / 0.25, 0, 1)
+              hsv = np.asarray(im.convert('HSV')).astype(np.float32) / 255.0
+              h, s, v = hsv[..., 0], hsv[..., 1], hsv[..., 2]
+              alpha = np.clip((v - 0.07) / 0.85, 0, 1) * inside
+              ys, xs = np.where(alpha > 0.04)
+              box = (xs.min(), ys.min(), xs.max() + 1, ys.max() + 1)
+              return h[box[1]:box[3], box[0]:box[2]], s[box[1]:box[3], box[0]:box[2]], v[box[1]:box[3], box[0]:box[2]], alpha[box[1]:box[3], box[0]:box[2]]
+
+          def tinted(base, tid, acc):
+              h, s, v, a = base
+              r, g, b = [x / 255.0 for x in hexrgb(acc)]
+              ah, as_, av = colorsys.rgb_to_hsv(r, g, b)
+              if tid == 'classic':
+                  nh, ns = h, s
+              else:
+                  nh = (h + (ah - 0.52)) % 1.0
+                  ns = np.clip(s * min(1.0, as_ / 0.85), 0, 1)
+              nv = np.where(a > 0, 1.0, 0.0)  # un-premultiplied: full brightness, alpha carries the glow
+              hsv = np.stack([nh, ns, nv], axis=-1)
+              rgb = np.asarray(Image.fromarray((hsv * 255).astype(np.uint8), 'HSV').convert('RGB'))
+              out = np.dstack([rgb, (a * 255).astype(np.uint8)])
+              return Image.fromarray(out, 'RGBA')
+
+          def bgcolor(tid, bg, acc):
+              if tid in LIGHT:
+                  r, g, b = hexrgb(acc); return (int(r * .16), int(g * .16), int(b * .16))
+              return hexrgb(bg)
+
+          def fit(img, size, frac):
+              w, h = img.size; k = size * frac / max(w, h)
+              return img.resize((max(1, round(w * k)), max(1, round(h * k))), Image.LANCZOS)
+
+          def foreground(c, size):
+              can = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+              f = fit(c, size, 0.64)
+              can.alpha_composite(f, ((size - f.width) // 2, (size - f.height) // 2))
+              return can
+
+          def legacy(c, size, bg):
+              can = Image.new('RGBA', (size, size), bg + (255,))
+              f = fit(c, size, 0.70)
+              can.alpha_composite(f, ((size - f.width) // 2, (size - f.height) // 2))
+              m = Image.new('L', (size * 4, size * 4), 0)
+              ImageDraw.Draw(m).rounded_rectangle((0, 0, size * 4 - 1, size * 4 - 1), radius=int(size * 4 * 0.22), fill=255)
+              m = m.resize((size, size), Image.LANCZOS)
+              can.putalpha(m)
+              return can
+
+          FG = {'mdpi': 108, 'hdpi': 162, 'xhdpi': 216, 'xxhdpi': 324, 'xxxhdpi': 432}
+          LG = {'mdpi': 48, 'hdpi': 72, 'xhdpi': 96, 'xxhdpi': 144, 'xxxhdpi': 192}
+
+          def run(logo, res):
+              base = extract_c(logo)
+              for d in ['values', 'drawable', 'mipmap-anydpi-v26']:
+                  os.makedirs(res + '/' + d, exist_ok=True)
+              for tid, bg, acc in THEMES:
+                  c = tinted(base, tid, acc)
+                  col = '#%02x%02x%02x' % bgcolor(tid, bg, acc)
+                  n = 'ic_' + tid
+                  open('%s/drawable/%s_bg.xml' % (res, n), 'w').write('<?xml version="1.0" encoding="utf-8"?>\n<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle"><solid android:color="%s"/></shape>\n' % col)
+                  open('%s/mipmap-anydpi-v26/%s.xml' % (res, n), 'w').write('<?xml version="1.0" encoding="utf-8"?>\n<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n<background android:drawable="@drawable/%s_bg"/>\n<foreground android:drawable="@mipmap/%s_fg"/>\n</adaptive-icon>\n' % (n, n))
+                  for dens in FG:
+                      os.makedirs('%s/mipmap-%s' % (res, dens), exist_ok=True)
+                      foreground(c, FG[dens]).save('%s/mipmap-%s/%s_fg.png' % (res, dens, n))
+                      legacy(c, LG[dens], bgcolor(tid, bg, acc)).save('%s/mipmap-%s/%s.png' % (res, dens, n))
+                  if tid == 'classic':   # also the default app icon (Settings > Apps etc.)
+                      for dens in FG:
+                          foreground(c, FG[dens]).save('%s/mipmap-%s/ic_launcher_foreground.png' % (res, dens))
+                          l = legacy(c, LG[dens], bgcolor(tid, bg, acc))
+                          l.save('%s/mipmap-%s/ic_launcher.png' % (res, dens)); l.save('%s/mipmap-%s/ic_launcher_round.png' % (res, dens))
+                      open(res + '/values/ic_launcher_background.xml', 'w').write('<?xml version="1.0" encoding="utf-8"?>\n<resources><color name="ic_launcher_background">%s</color></resources>\n' % col)
+                      for nm in ('ic_launcher', 'ic_launcher_round'):
+                          open('%s/mipmap-anydpi-v26/%s.xml' % (res, nm), 'w').write('<?xml version="1.0" encoding="utf-8"?>\n<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n<background android:drawable="@drawable/ic_classic_bg"/>\n<foreground android:drawable="@mipmap/ic_classic_fg"/>\n</adaptive-icon>\n')
+
+          if __name__ == '__main__':
+              run(sys.argv[1], sys.argv[2])
+              print('icons made')
+
+          PY
+          python3 make_icons.py "$LOGO" android/app/src/main/res
+
+      - name: Add CvNative plugin (theme icons + landscape)
+        run: |
+          python3 - <<'PY'
+          import re, glob, os
+          THEMES = ['classic', 'live', 'gold', 'silver', 'diamond', 'puregold', 'neon', 'ops', 'royale', 'christmas', 'valentine', 'easter', 'halloween', 'newyear', 'space', 'pink', '3d', 'beach', 'anime', 'ghana', 'kente', 'blackstar']
+          main = glob.glob('android/app/src/main/java/**/MainActivity.java', recursive=True)[0]
+          pkg = re.search(r'^package\s+([\w.]+);', open(main).read(), re.M).group(1)
+          jdir = os.path.dirname(main)
+          ids = ', '.join('"%s"' % t for t in THEMES)
+          java = """package PKG;
+
+          import android.app.Activity;
+          import android.content.ComponentName;
+          import android.content.Context;
+          import android.content.pm.ActivityInfo;
+          import android.content.pm.PackageManager;
+          import androidx.core.view.WindowInsetsCompat;
+          import androidx.core.view.WindowInsetsControllerCompat;
+          import com.getcapacitor.JSObject;
+          import com.getcapacitor.Plugin;
+          import com.getcapacitor.PluginCall;
+          import com.getcapacitor.PluginMethod;
+          import com.getcapacitor.annotation.CapacitorPlugin;
+
+          @CapacitorPlugin(name = "CvNative")
+          public class CvNative extends Plugin {
+            private static final String[] IDS = { IDLIST };
+            private String pending = null;
+
+            @PluginMethod
+            public void setIcon(PluginCall call) {
+              String t = call.getString("theme", "classic");
+              boolean ok = false;
+              for (String id : IDS) { if (id.equals(t)) ok = true; }
+              if (!ok) t = "classic";
+              pending = t;
+              call.resolve();
+            }
+
+            @Override
+            protected void handleOnPause() { apply(); }
+
+            @Override
+            protected void handleOnStop() { apply(); }
+
+            private void apply() {
+              if (pending == null) return;
+              String want = pending;
+              pending = null;
+              try {
+                Context c = getContext();
+                PackageManager pm = c.getPackageManager();
+                ComponentName on = new ComponentName(c.getPackageName(), "PKG.Alias_" + want);
+                pm.setComponentEnabledSetting(on, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+                for (String id : IDS) {
+                  if (id.equals(want)) continue;
+                  ComponentName off = new ComponentName(c.getPackageName(), "PKG.Alias_" + id);
+                  pm.setComponentEnabledSetting(off, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                }
+              } catch (Exception e) { }
+            }
+
+            @PluginMethod
+            public void setOrientation(final PluginCall call) {
+              final String mode = call.getString("mode", "auto");
+              final Activity a = getActivity();
+              if (a == null) { call.resolve(); return; }
+              a.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                  try {
+                    boolean land = "landscape".equals(mode);
+                    boolean port = "portrait".equals(mode);
+                    a.setRequestedOrientation(land ? ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE : (port ? ActivityInfo.SCREEN_ORIENTATION_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED));
+                    WindowInsetsControllerCompat wc = new WindowInsetsControllerCompat(a.getWindow(), a.getWindow().getDecorView());
+                    if (land) {
+                      wc.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+                      wc.hide(WindowInsetsCompat.Type.systemBars());
+                    } else if (!port) {
+                      wc.show(WindowInsetsCompat.Type.systemBars());
+                    }
+                  } catch (Exception e) { }
+                }
+              });
+              call.resolve();
+            }
+
+            @PluginMethod
+            public void setPrivacy(PluginCall call) { call.resolve(); }
+
+            @PluginMethod
+            public void hideBanner(PluginCall call) { call.resolve(); }
+
+            @PluginMethod
+            public void getLaunch(PluginCall call) { call.resolve(new JSObject()); }
+
+            @PluginMethod
+            public void exitApp(PluginCall call) {
+              call.resolve();
+              if (getActivity() != null) getActivity().finishAffinity();
+            }
+          }
+          """.replace('PKG', pkg).replace('IDLIST', ids)
+          open(jdir + '/CvNative.java', 'w').write(java)
+          open(main, 'w').write("""package PKG;
+
+          import android.os.Bundle;
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+            @Override
+            public void onCreate(Bundle savedInstanceState) {
+              registerPlugin(CvNative.class);
+              super.onCreate(savedInstanceState);
+            }
+          }
+          """.replace('PKG', pkg))
+          mf = 'android/app/src/main/AndroidManifest.xml'
+          m = open(mf).read()
+          if 'Alias_classic' not in m:
+              m = re.sub(r'<intent-filter>(?:(?!</intent-filter>).)*?android\.intent\.category\.LAUNCHER(?:(?!</intent-filter>).)*?</intent-filter>', '', m, flags=re.S)
+              al = ''
+              for t in THEMES:
+                  al += '<activity-alias android:name=".Alias_%s" android:targetActivity=".MainActivity" android:enabled="%s" android:exported="true" android:icon="@mipmap/ic_%s" android:label="@string/app_name"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity-alias>\n' % (t, 'true' if t == 'classic' else 'false', t)
+              m = m.replace('</application>', al + '</application>')
+              open(mf, 'w').write(m)
+          print('CvNative + icon aliases added, package', pkg)
+
+          PY
+
       - name: Add AdMob app id (stops crash on launch)
         run: |
           M=android/app/src/main/AndroidManifest.xml
           grep -q "gms.ads.APPLICATION_ID" $M || \
-            sed -i 's#</application>#<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/></application>#' $M
+            sed -i 's#</application>#<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="'"$ADMOB_APP_ID"'"/></application>#' $M
 
       - name: Build debug APK
         run: |
@@ -59,5 +305,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: CineVerse-debug-apk
+          name: CineVerse-build-${{ github.run_number }}
           path: android/app/build/outputs/apk/debug/app-debug.apk
