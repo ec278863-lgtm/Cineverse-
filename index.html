@@ -1328,7 +1328,39 @@ body.cv-nt .card p{display:none}body.cv-nrb .rtb{display:none}
 
 
   /* ================= NATIVE BRIDGE (Android app only, after the native update) ================= */
-  const CVN = (() => { try { return window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform() && (!Capacitor.isPluginAvailable || Capacitor.isPluginAvailable('CvNative')) && Capacitor.Plugins && Capacitor.Plugins.CvNative || null; } catch (e) { return null; } })();
+  function cvAdShim(N) {
+    if (!N) return N;
+    let am = null; try { am = Capacitor.Plugins && Capacitor.Plugins.AdMob || null; } catch (e) { }
+    if (!am) return N;
+    let inited = null, npa = false, rwReady = false;
+    const init = () => inited || (inited = Promise.resolve().then(() => am.initialize({})).catch(() => { }));
+    const isT = id => /ca-app-pub-3940256099942544/.test(id || '');
+    const api = {
+      consentInit: async () => {
+        try {
+          let r = await am.requestConsentInfo();
+          if (r && r.status === 'REQUIRED' && r.isConsentFormAvailable) { try { await am.showConsentForm(); } catch (e) { } r = await am.requestConsentInfo(); }
+          await init();
+          return { canRequestAds: !(r && r.canRequestAds === false), optionsRequired: !!(r && r.privacyOptionsRequirementStatus === 'REQUIRED') };
+        } catch (e) { await init(); return { canRequestAds: true, optionsRequired: false }; }
+      },
+      consentOptions: () => (am.showPrivacyOptionsForm ? am.showPrivacyOptionsForm() : Promise.resolve()),
+      setPrivacy: o => { npa = !!(o && o.npa); return Promise.resolve(); },
+      showBanner: async o => { await init(); await am.showBanner({ adId: o.id, adSize: 'ADAPTIVE_BANNER', position: 'BOTTOM_CENTER', margin: 0, isTesting: isT(o.id), npa }); },
+      hideBanner: () => (am.removeBanner ? am.removeBanner() : am.hideBanner()),
+      loadInterstitial: async o => { await init(); await am.prepareInterstitial({ adId: o.id, isTesting: isT(o.id), npa }); },
+      showInterstitial: async () => { await am.showInterstitial(); return { shown: true }; },
+      loadRewarded: async o => { rwReady = false; await init(); await am.prepareRewardVideoAd({ adId: o.id, isTesting: isT(o.id), npa }); rwReady = true; },
+      rewardedReady: async () => ({ ready: rwReady }),
+      showRewarded: async () => { await am.showRewardVideoAd(); rwReady = false; return { shown: true, rewarded: true }; },
+      loadAppOpen: () => Promise.reject(new Error('app open ads not available')),
+      showAppOpen: () => Promise.resolve({ shown: false }),
+      addListener: (n, f) => (n === 'cvAd' || n === 'cvAdErr') ? Promise.resolve({ remove() { } }) : N.addListener(n, f)
+    };
+    return new Proxy(N, { get: (t, p) => (p in api ? api[p] : t[p]) });
+  }
+  const CVN0 = (() => { try { return window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform() && (!Capacitor.isPluginAvailable || Capacitor.isPluginAvailable('CvNative')) && Capacitor.Plugins && Capacitor.Plugins.CvNative || null; } catch (e) { return null; } })();
+  const CVN = cvAdShim(CVN0);
   function syncIcon() {
     if (!CVN) return;
     const id = thById(eff()).id, want = ST.cvIconOn === false ? 'classic' : (id === 'photo' ? 'classic' : id);
