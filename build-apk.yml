@@ -1,0 +1,52 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install Capacitor + plugins
+        run: |
+          [ -f package.json ] || npm init -y
+          npm i @capacitor/core @capacitor/cli @capacitor/android \
+                @capacitor/app @capacitor/local-notifications \
+                @capacitor-community/admob
+
+      - name: Prepare web folder
+        run: |
+          mkdir -p www
+          cp index.html www/
+          [ -f sw.js ] && cp sw.js www/ || true
+
+      - name: Init Capacitor + Android project
+        run: |
+          [ -f capacitor.config.json ] || [ -f capacitor.config.ts ] || \
+            npx cap init CineVerse com.cineverse.app --web-dir=www
+          [ -d android ] || npx cap add android
+          npx cap sync android
+
+      - name: Build debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CineVerse-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
