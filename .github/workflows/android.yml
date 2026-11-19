@@ -20,13 +20,10 @@ jobs:
           distribution: temurin
           java-version: 17
 
-    
       - name: Install Capacitor + plugins
         run: |
           [ -f package.json ] || npm init -y
-          npm i @capacitor/core @capacitor/cli @capacitor/android \
-                @capacitor/app @capacitor/local-notifications \
-                @capacitor-community/admob
+          npm i --legacy-peer-deps @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/app@6 @capacitor/local-notifications@6 @capacitor-community/admob@6
 
       - name: Prepare web folder
         run: |
