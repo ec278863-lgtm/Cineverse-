@@ -27,6 +27,11 @@ jobs:
 
       - name: Prepare web folder
         run: |
+          if [ ! -f index.html ]; then
+            echo "ERROR: index.html not found in the repo root. Rename your file to exactly index.html"
+            ls
+            exit 1
+          fi
           mkdir -p www
           cp index.html www/
           [ -f sw.js ] && cp sw.js www/ || true
@@ -37,6 +42,12 @@ jobs:
             npx cap init CineVerse com.cineverse.app --web-dir=www
           [ -d android ] || npx cap add android
           npx cap sync android
+
+      - name: Add AdMob app id (stops crash on launch)
+        run: |
+          M=android/app/src/main/AndroidManifest.xml
+          grep -q "gms.ads.APPLICATION_ID" $M || \
+            sed -i 's#</application>#<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/></application>#' $M
 
       - name: Build debug APK
         run: |
