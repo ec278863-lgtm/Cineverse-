@@ -7,7 +7,7 @@ on:
 
 # PUT YOUR REAL ADMOB APP ID ON THE NEXT LINE (it looks like ca-app-pub-4031231954162326~1234567890)
 env:
-  ADMOB_APP_ID: ca-app-pub-3940256099942544~3347511713
+  ADMOB_APP_ID: ca-app-pub-4031231954162326~4329486535
 
 jobs:
   build:
@@ -35,13 +35,23 @@ jobs:
 
       - name: Prepare web folder
         run: |
-          if [ ! -f index.html ]; then
-            echo "ERROR: index.html not found in the repo root. Rename your file to exactly index.html"
+          SRC=""
+          if [ -f index.html ]; then
+            SRC="index.html"
+          else
+            for f in ./*; do
+              [ -f "$f" ] || continue
+              if grep -aq "cvpip" "$f" && grep -aq "cv-ai-upload" "$f"; then SRC="$f"; fi
+            done
+          fi
+          if [ -z "$SRC" ]; then
+            echo "ERROR: could not find your app file (index.html). Files in repo:"
             ls
             exit 1
           fi
+          echo "Using app file: $SRC"
           mkdir -p www
-          cp index.html www/
+          cp "$SRC" www/index.html
           [ -f sw.js ] && cp sw.js www/ || true
 
       - name: Capacitor sync
