@@ -44,11 +44,11 @@ jobs:
             case "$f" in *.png|*.jpg|*.jpeg|*.webp|*.json|*.sql|*.yml|*.js|*.sh|*.py) continue;; esac
             grep -aq "<html" "$f" || continue
             SC=0
-            for k in cvpip cv-ai-upload cvAdShim "GHANA COLLECTION" "$KEY"; do
+            for k in cvpip cv-ai-upload cvAdShim cvAdDbg cvStudioLock "GHANA COLLECTION" "$KEY"; do
               if grep -aqF -- "$k" "$f"; then SC=$((SC+1)); fi
             done
             T=$(git log -1 --format=%ct -- "$f" 2>/dev/null); [ -n "$T" ] || T=0
-            [ "$SC" -gt 0 ] && echo "candidate: $f  features=$SC/5"
+            [ "$SC" -gt 0 ] && echo "candidate: $f  features=$SC/7"
             if [ "$SC" -gt "$BESTSCORE" ] || { [ "$SC" -eq "$BESTSCORE" ] && [ "$SC" -gt 0 ] && [ "$T" -gt "$BESTTIME" ]; }; then
               BEST="$f"; BESTSCORE=$SC; BESTTIME=$T
             fi
@@ -59,7 +59,7 @@ jobs:
             ls
             exit 1
           fi
-          echo "USING APP FILE: $BEST (features $BESTSCORE/5)"
+          echo "USING APP FILE: $BEST (features $BESTSCORE/7)"
           mkdir -p www
           cp "$BEST" www/index.html
           sed -i "s/PAYSTACK_PUBLIC_KEY_HERE/$KEY/" www/index.html
@@ -138,8 +138,8 @@ jobs:
               '2fV8lU8PxYDEuPRpk0qYA/1lMDydAyANrnJ1xRssY3IohmsYIqTWJfciK3vIcj0UtVfKARtldii4DgYLg7FRYjSIaeq42zQ2IG3Z'
               'tJy2vx+ZvxErLaORHdAHy4K96jFOlsSihA4qUQRRbMQEQDeq2tjALLU5m6ZJV6QlNRv1kqQbxx0g2JIsFRzbJ5/TtGxd2HNookFq'
               'xH4vgnfQuDcQphH8YNn+aW6uIzIt2+3ImuWnmZWhCexXFob05UQEPVhsotMUh8vlZBwnhpHNHl9eXj6aZobe7WBTlFoGX7V9ZJeK'
-              'tFkqEsaDbPz4J/FXsD79eIhveAuGRLrKJgppjOlfEknE37zEr6J90u/ixw923Qbz4Ku2L5YfizQHGuiNpem3t9r/jC/6SQzOZVBZ'
-              '5UtxWLgk0mEvzf7q8N/6izQB19QG4WX+Qg6a03K5htwwGBlz0E+TLjj9wwzqoG3z8mPhikhGDQ6U3uAPTn/I9eqDLrbpRyoGG9Ga'
+              'tFkqEsaDbPz4J/FXsD79eIhveAuGRLrKJgppjOlfEknE37zEr6J90u/ixw923Qbz4Ku2L5YfizQHGuiNpem3t9r/jC/7SQzOZVBZ'
+              '5UtxWLgk0mEvzf7q8N/7izQB19QG4WX+Qg6a03K5htwwGBlz0E+TLjj9wwzqoG3z8mPhikhGDQ6U3uAPTn/I9eqDLrbpRyoGG9Ga'
               'UpcyUYwlD1674ebpW7bNgU9Sz6yN5/MjIIe0nwLa6NXWETefxbF9J0o/SVUzwjSzZ3qDkPfVG6TfbZ2wXt9cXf7alLirH6s66CNr'
               'LgOT0fjWGTeX/5/EBk0H4jjng8bziCFntJuib57189YRK/PL5W+7HZN630a8Mx1BwKnVeLPRrQM4e5hYBBi0vRCNi/ehSY6U7JUH'
               'Li/Pzt7t2NSTaCXLxeV0uRq2FvdS4507Fqefxk6gxH9W+5Mhg7m45w1ypAzSn71wfna6fKtt/1Pot5FsQYlOMjpwN7hds30PJuA3'
@@ -175,7 +175,7 @@ jobs:
               'YSwEZkUFGWTnYW80HR4nvmydpBWReURjB+UywaXA1vG/KzYfhHZpuutUuFXrOUX3CW6ytx/t7fN9alQjstsMK7vNnZqRhtMgqudg'
               'p87EVald6u/nYadWpYHfxBL37gBWUDggiicAAJCvAJ0BKngBkAE+nUifSyWkIyKncuqgsBOJYm7haY47GS2rP+k67UEPiv8X+y3+'
               'B9+W0v4X++/3//Wf373nePXZ/oD+b/un/c/x35jfN7/afsF7o/1B/4/cD/i/9G/5/90/0/Y78wf9X/z/7Ze81/yv2U93P+T9QL+1'
-              '/7D/4eu77FX+W9QD9t/V6/637Zf+L5Pf6l/v/3I+BD+g/5H//f7T/v/AB/2/UA/f/2AOuM8C/89/u/yN/dT3r/HMUDsu9m8vyGjy'
+              '/7D/4eu77FX+W9QD9t/V6/737Zf+L5Pf6l/v/3I+BD+g/5H//f7T/v/AB/2/UA/f/2AOuM8C/89/u/yN/dT3r/HMUDsu9m8vyGjy'
               'evsFiVoAcSrUL6XHotfuAYYqTB1bg+vNa9XS422jUYRLTnM3lSGXXYXt5VV7Amgd4UnD1DClpejkHgf14vfGB215GdgkrfBV4okS'
               'pMh///tNrANNsDq6EjH5dBVuAT9LOVbpZsXkXDbz23zZLURyJYHPGOi5/xryYJ7Q2dUNNZ6xh3XX0//+nJ//3lzFri9qN2pOyOkq'
               '7tw62h09hfdO70KjfJS3cI00AvW6gUalZUG+otFnxG3SfQfBtfTz+A5/nyeirjHNvzyeB6mRdLMJFu6mR6Co9WO9D8NT1fROm2Fj'
@@ -223,7 +223,7 @@ jobs:
               '/TxxO17FXTC33XBHOxDCxoAFdZ0HbUDTHIqZeZwZwoqhnBxPSuqvj1tEgnT40/Y7ofsgNvxcylwdGTv0JKc0D3FG0eyjeSVdIId5'
               'PWkenD8Vh9yoIcgwIrhs5MzCRilrHT1zrQ9x+IB+A/iwkk2984s5WX/SPmyoCIbVh165sesg+YsWMW9J3AJTXoYT2d96SYQdgf1q'
               'leyFvXYh5bediBfSTSDCaAe1ZDIfHO4nusWRlYgP5seaXrJrnEBD3g/zn5YApZQK0n7xeQTRfyr018g5diabnO2lDItW0reXjz7b'
-              '6Fig4O8UHtJV3GhszgZESIek8AJYaU3353VzI/ug0/6ANjm1xPS3WKEMIPLmYnAPdzoU2/QAfQeGrfAQZSzszEQotohna6e/8/dc'
+              '6Fig4O8UHtJV3GhszgZESIek8AJYaU3353VzI/ug0/7ANjm1xPS3WKEMIPLmYnAPdzoU2/QAfQeGrfAQZSzszEQotohna6e/8/dc'
               '4yCEeLk/kUq5gLevbgAGxvFNO93TM8tss9+D6wUwoUDOIRFQmFra0p62g03F+B1sgyqQ197NVsIEG11v2OPJ2HN9uctBprmLGZW1'
               'jdCiUL9hAv5w73OxQ1ZFqpfpdpGINxEPtpX63HBUufnDa+t6P3fkygD/THShHj/SfFxJzcvs7hTaCZo/mWjakhhU3RTdyXa4HfDx'
               'Jg2xqsek7MwqlmySfFljwXhy0NFlc1ehmNmpcAg9Y0WWMHafgOagdq2znLPkREIO4jRwAKXgXW0sXM3Zaa/g9RcQ9cY7e8DMW58m'
@@ -234,7 +234,7 @@ jobs:
               'hPRoHjIF4yQe9nCU4dZp1rdpJiq9+bVl4LgH9cNY9LMRj76KFGJeDUNGbwORzCafbLWYOMcIsePkBn3uo5f/qzEn6OTAThte/EpH'
               'IBN8Q4oe2AknoDpQE0J7bEsti45eB9qFaJ4MfTklPMafVrpAPM1KzrJ+jd0AI38MJkXZnILNsglLI0XTDE7zkUANLeJbQLKNc7z2'
               'RuNxxdT1svT0vmyD7g20B799zM8yApnsmV5HRLgnmj10LTtyPhCe3UuVt45VjqgAxQV2Hko5JVMlQbHVGeW+yNO8HACjl0sHBbgQ'
-              'CQC4rxDZ/RRiQEwIhMfI4cMDN9QpLq9vfjfSBA3Zh/cN0klHqIqJWGLziN+8qdEz1XwVA7SzLGBXhoVpP/6OrgDRGnL2wUf7PBYL'
+              'CQC4rxDZ/RRiQEwIhMfI4cMDN9QpLq9vfjfSBA3Zh/cN0klHqIqJWGLziN+8qdEz1XwVA7SzLGBXhoVpP/7OrgDRGnL2wUf7PBYL'
               'CERmzAlkhbqFDYUlD0juz+L0piGCelb3pZ8/WYUT4lU4u7jx+B48qNYLzjmPUQAcSWWx+lH+S6BhkJd5V4PWbJrenGw0xSADX2wA'
               '1FNlf/y0U5DfRnR37/utOvIk6pQaHNngeaoItibcKdbWapmtFw1uNtoI4WHP0RM9hhddqfcM6xlaazRU1SCBcIR5aESr/wEdDi3R'
               'z/Dzo78JKPHm2n0JeqMZPeBlkzvBGN6ypqQOxg1PMIHljq82xzB57v0e9V+YYVgEwNByS/2DCAsEGOxLMHi+p9bfUBJ6uEyuAv3q'
@@ -293,7 +293,7 @@ jobs:
               'TsGob7C15Dx9S+zW9K23SIo7CTjMXkhGxGPTYef1mc4bpAX/oaBnSBLxRcvleKxugkmoavVPdCZXy14zEpIIC3AsrYg7tRO5FIne'
               '7rBq3o532ES2GoNKenQNXd4ySlNWE1xZ8QsfpnqcwfI1R9mXv15aZ8qfVJlP57hYKKhQioXeY4ySzu5+4x7Ud5QC72Oi8lf24n7W'
               'P/Ikp+3KwbIvsv4kWFtWDxYDBW1uJ3RS5KknsDM3991EPRWz4vFtTsSOQMTk+TAAAAAVQXFIe+iNCAuDSRstDVV1VAZVxpQLtXyo'
-              's1Vb0i1DFt/ht3//64l2k0FUo+WAMss6yUjCZuvM0VciFP4kZxYrKDEK8SEtuFs1oU/SK3Bmn9OtCRRpAqMM/iy/dltevXP+FTXA'
+              's1Vb0i1DFt/ht3//74l2k0FUo+WAMss6yUjCZuvM0VciFP4kZxYrKDEK8SEtuFs1oU/SK3Bmn9OtCRRpAqMM/iy/dltevXP+FTXA'
               '2N8BSImBZdjlmJiq/jio98aGx1jmUnBNLLYILjKG5nmpgpQs9oxyT5yuENU+WdshjCE6q+Eay2sOm47KQ0oTjLSLRSXRoxJGZ/z/'
               'TsduhR1ftfUObk3CG1ZJo5EzFISakf1CdU2ykAAAaZ8nYAglt3gCLGCNw5w0z7UeTwMpIWw3Jm2lldCIipBXQ/7HMVKaAdaW32Fp'
               '2mL/xONldoFlRtDG3/8+Y5C/NHhFMliGWAsK78tsie8yz7pdEa/Dx7WyqojB3yAhCmwY7pBUYAb0qywt4zg40K5Z4840ZucgRjVU'
