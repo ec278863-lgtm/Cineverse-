@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -35,23 +37,33 @@ jobs:
 
       - name: Prepare web folder
         run: |
-          SRC=""
-          if [ -f index.html ]; then
-            SRC="index.html"
-          else
-            for f in ./*; do
-              [ -f "$f" ] || continue
-              if grep -aq "cvpip" "$f" && grep -aq "cv-ai-upload" "$f"; then SRC="$f"; fi
+          KEY="pk_test_3e76dee9b7a080ab253bbc8678d74ccd118cfe5c"
+          BEST=""; BESTSCORE=0; BESTTIME=0
+          for f in ./*; do
+            [ -f "$f" ] || continue
+            case "$f" in *.png|*.jpg|*.jpeg|*.webp|*.json|*.sql|*.yml|*.js|*.sh|*.py) continue;; esac
+            grep -aq "<html" "$f" || continue
+            SC=0
+            for k in cvpip cv-ai-upload cvAdShim "GHANA COLLECTION" "$KEY"; do
+              if grep -aqF -- "$k" "$f"; then SC=$((SC+1)); fi
             done
-          fi
-          if [ -z "$SRC" ]; then
-            echo "ERROR: could not find your app file (index.html). Files in repo:"
+            T=$(git log -1 --format=%ct -- "$f" 2>/dev/null); [ -n "$T" ] || T=0
+            [ "$SC" -gt 0 ] && echo "candidate: $f  features=$SC/5"
+            if [ "$SC" -gt "$BESTSCORE" ] || { [ "$SC" -eq "$BESTSCORE" ] && [ "$SC" -gt 0 ] && [ "$T" -gt "$BESTTIME" ]; }; then
+              BEST="$f"; BESTSCORE=$SC; BESTTIME=$T
+            fi
+          done
+          if [ -z "$BEST" ] && [ -f index.html ]; then BEST="index.html"; fi
+          if [ -z "$BEST" ]; then
+            echo "ERROR: could not find your app file. Files in repo:"
             ls
             exit 1
           fi
-          echo "Using app file: $SRC"
+          echo "USING APP FILE: $BEST (features $BESTSCORE/5)"
           mkdir -p www
-          cp "$SRC" www/index.html
+          cp "$BEST" www/index.html
+          sed -i "s/PAYSTACK_PUBLIC_KEY_HERE/$KEY/" www/index.html
+          if grep -qF "$KEY" www/index.html; then echo "Paystack key: OK"; else echo "Paystack key: MISSING"; fi
           [ -f sw.js ] && cp sw.js www/ || true
 
       - name: Capacitor sync
@@ -350,13 +362,13 @@ jobs:
 
           def foreground(c, size):
               can = Image.new('RGBA', (size, size), (0, 0, 0, 0))
-              f = fit(c, size, 0.68)
+              f = fit(c, size, 0.52)
               can.alpha_composite(f, ((size - f.width) // 2, (size - f.height) // 2))
               return can
 
           def legacy(c, size, bg):
               can = Image.new('RGBA', (size, size), bg + (255,))
-              f = fit(c, size, 0.70)
+              f = fit(c, size, 0.56)
               can.alpha_composite(f, ((size - f.width) // 2, (size - f.height) // 2))
               m = Image.new('L', (size * 4, size * 4), 0)
               ImageDraw.Draw(m).rounded_rectangle((0, 0, size * 4 - 1, size * 4 - 1), radius=int(size * 4 * 0.22), fill=255)
